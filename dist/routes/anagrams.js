@@ -9,6 +9,7 @@ const isAnagram_1 = __importDefault(require("../functions/isAnagram"));
 const router = express_1.default.Router();
 const AnagramsList = new Map();
 const AnagramsTopTen = [];
+let clients = [];
 router.post('/', (req, res) => {
     if (!req.body)
         return res.status(400).json({ Error: 'No Words Were Found in Request' });
@@ -36,12 +37,45 @@ router.post('/', (req, res) => {
     if (!AnagramsList.has(key))
         key = anagram.wordB;
     const newAnagramRequest = { word: key, times: AnagramsList.get(key) };
-    updateTopTen_1.default(newAnagramRequest, AnagramsTopTen);
+    if (updateTopTen_1.default(newAnagramRequest, AnagramsTopTen)) {
+        sendTopTenToAll(AnagramsTopTen);
+    }
     return res.status(200).send(anagram);
 });
 router.get('/', (req, res) => {
     console.log('get request');
     return res.status(200).json(AnagramsTopTen);
+});
+// Iterate clients list and use write res object method to send new nest
+function sendTopTenToAll(data) {
+    console.log('send top ten to all');
+    console.log(clients.length);
+    return clients.forEach(client => client.res.write(`data: ${JSON.stringify(data)}\n\n`));
+}
+router.get('/live', (req, res) => {
+    /*Mandatory headers and http status to keep connection open*/
+    const headers = {
+        'Content-Type': 'text/event-stream',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache'
+    };
+    res.writeHead(200, headers);
+    /*After client opens connection send all nests as string*/
+    const data = `{data: ${JSON.stringify(AnagramsTopTen)}}\n\n`;
+    res.write("event: message\n");
+    res.write(data);
+    const clientId = Date.now();
+    const newClient = {
+        id: clientId,
+        res
+    };
+    clients.push(newClient);
+    console.log('client ID: ' + clientId);
+    console.log(data);
+    req.on('close', () => {
+        console.log(`${clientId} Connection closed`);
+        clients = clients.filter(c => c.id !== clientId);
+    });
 });
 exports.default = router;
 //# sourceMappingURL=anagrams.js.map
