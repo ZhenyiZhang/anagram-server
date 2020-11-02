@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/expressTSsample.iml" filepath="$PROJECT_DIR$/.idea/expressTSsample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/anagram-server.iml" filepath="$PROJECT_DIR$/.idea/anagram-server.iml" />
     </modules>
   </component>
 </project>
